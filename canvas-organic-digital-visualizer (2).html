@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Text Visualizer with Green Upward Floating Particles</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #f4ede3; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="visualizer"></canvas>
+    <script>
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let shapes = [];
+        let ripples = [];
+        let explosions = [];
+        let destroyedCount = 0;
+        const SHAPE_COUNT = 150;
+        const MUTED_GREEN_COLORS = ['#4a6741', '#5a7a4e', '#6b8e5c', '#7ca26a', '#8db678']; // Muted organic greens
+        const SHAPE_TYPES = ['circle', 'square', 'triangle', 'pentagon', 'hexagon'];
+
+        let revealing = true;
+        const maxWords = 233; // Define the maximum number of words to display at once
+        let revealDirection = 1; // 1 for revealing, -1 for hiding
+
+        const TEXT = "If we look at language, nobody knows or cares who invented the words we use every day. We skate on the surface of stolen symbols, unaware of all the literature, letters, gossip, slang, jokes, and all the lived-life that got folded into the informational heft of each syllable. Unaware of all the iterative cycles through historical social networks that these words went through to get sharpened into their current state. \n\nTheir ease of use enabled fast test runs, fast mutations. \n\nNow this same process is being applied to images, sound, identity, all media, myth, and memes—they're all becoming liquid like words. And it hurts. Because those things took a lot of effort to build at those first layers of creative connection. And it's unfair and sad to see an artist's career get compressed into a data paintbrush. There's no moral defense of it at the individual level. Just as there's no realistic defense against it at the global level. \n\nCall it creative destruction, cultural ratcheting, or collaborative tech. From hand-craft to idea-craft, we're climbing up the layers of abstraction, a massive network rising to task: a great translation. \n\nAs an amoral force of nature, information simply wants freedom. Like a plant outgrowing it's pot, our stories push past the edges. And as the current informational containers, we can still shape it, even if we can't stop its directional flow: onward, outward, upward.";
+
+        const WORDS = TEXT.split(' ');
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        function getColorFromPosition(x, y) {
+            const hue = 180 + (x / width) * 90;
+            const lightness = 30 + (y / height) * 40;
+            return `hsl(${hue}, 100%, ${lightness}%)`;
+        }
+
+        function getMutedCoolColor(x, y) {
+            const hue = (180 + (x / width * 180)) % 360;
+            return `hsl(${hue}, 30%, 60%)`;
+        }
+
+        class Shape {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * width;
+                this.y = height + 20;
+                this.size = Math.random() * 15 + 5;
+                this.speed = Math.random() * 0.5 + 0.9;
+                this.color = MUTED_GREEN_COLORS[Math.floor(Math.random() * MUTED_GREEN_COLORS.length)];
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? 1 : -1);
+                this.type = SHAPE_TYPES[Math.floor(Math.random() * SHAPE_TYPES.length)];
+            }
+
+            update() {
+                this.y -= this.speed;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y < -20) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.fillStyle = this.color;
+                ctx.strokeStyle = '#f5e6d3';
+                ctx.lineWidth = 0.5;
+
+                switch(this.type) {
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                        break;
+                    case 'square':
+                        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                        ctx.strokeRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                        break;
+                    case 'triangle':
+                        ctx.beginPath();
+                        ctx.moveTo(0, -this.size / 2);
+                        ctx.lineTo(-this.size / 2, this.size / 2);
+                        ctx.lineTo(this.size / 2, this.size / 2);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
+                        break;
+                    case 'pentagon':
+                        this.drawPolygon(5, this.size / 2);
+                        break;
+                    case 'hexagon':
+                        this.drawPolygon(6, this.size / 2);
+                        break;
+                }
+
+                ctx.restore();
+            }
+
+            drawPolygon(sides, radius) {
+                ctx.beginPath();
+                for (let i = 0; i < sides; i++) {
+                    const angle = (i / sides) * Math.PI * 2;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        class Ripple {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 0;
+                this.maxRadius = Math.max(width, height) * 0.3;
+                this.speed = 9;
+                this.opacity = 0.9;
+                this.color = getColorFromPosition(x, y);
+                this.lineCount = 5;
+                this.controlPoints = 32;
+                this.distortions = Array(this.controlPoints).fill().map(() => ({
+                    angle: Math.random() * Math.PI * 2,
+                    magnitude: Math.random() * 0.05 + 0.02
+                }));
+            }
+
+            update() {
+                this.radius += this.speed;
+                this.opacity = 1 - (this.radius / this.maxRadius);
+                return this.radius <= this.maxRadius;
+            }
+
+            draw() {
+                for (let i = 0; i < this.lineCount; i++) {
+                    const radius = this.radius - (i * this.speed);
+                    if (radius > 0) {
+                        ctx.beginPath();
+                        
+                        const distortionFactor = Math.min(1, (radius / this.maxRadius) * 2);
+                        
+                        for (let j = 0; j <= this.controlPoints; j++) {
+                            const angle = (j / this.controlPoints) * Math.PI * 2;
+                            const distortionIndex = j % this.controlPoints;
+                            const distortion = this.distortions[distortionIndex];
+                            
+                            const distortedRadius = radius * (1 + distortion.magnitude * distortionFactor * Math.sin(angle + distortion.angle));
+                            
+                            const x = this.x + Math.cos(angle) * distortedRadius;
+                            const y = this.y + Math.sin(angle) * distortedRadius;
+
+                            if (j === 0) {
+                                ctx.moveTo(x, y);
+                            } else {
+                                ctx.lineTo(x, y);
+                            }
+                        }
+
+                        ctx.closePath();
+                        ctx.strokeStyle = this.color.replace(')', `, ${this.opacity * (1 - i/this.lineCount)})`).replace('hsl', 'hsla');
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        class Explosion {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.particles = [];
+                for (let i = 0; i < 10; i++) {
+                    this.particles.push({
+                        x: 0,
+                        y: 0,
+                        speed: Math.random() * 1.5 + 0.5,
+                        angle: Math.random() * Math.PI * 2,
+                        size: Math.random() * 2 + 0.5,
+                        life: 1
+                    });
+                }
+            }
+
+            update() {
+                this.particles.forEach(p => {
+                    p.x += Math.cos(p.angle) * p.speed;
+                    p.y += Math.sin(p.angle) * p.speed;
+                    p.life -= 0.03;
+                    p.size *= 0.95;
+                });
+                this.particles = this.particles.filter(p => p.life > 0);
+                return this.particles.length > 0;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                this.particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color.replace(')', `, ${p.life * 0.7})`).replace('rgb', 'rgba');
+                    ctx.fill();
+                });
+                ctx.restore();
+            }
+        }
+
+        function wrapText(text, maxWidth) {
+            let words = text.split(' ');
+            let lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                let word = words[i];
+                let width = ctx.measureText(currentLine + " " + word).width;
+                if (width < maxWidth) {
+                    currentLine += " " + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        function drawText() {
+    ctx.save();
+    
+    let fontSize = Math.max(16, Math.min(24, width / 50));
+    ctx.font = `${fontSize}px Arial`;
+    ctx.fillStyle = '#5a4a41';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    let boxWidth = Math.min(width * 0.9, 800);
+    let boxHeight = height * 0.8;
+    let boxX = (width - boxWidth) / 2;
+    let boxY = (height - boxHeight) / 2;
+
+    let revealedWordsCount = Math.floor(destroyedCount / 5);
+    if (revealedWordsCount > maxWords) {
+        revealDirection = -1; // Start hiding
+        destroyedCount = maxWords * 5; // Ensure it starts decreasing from max
+    } else if (revealedWordsCount < 0) {
+        revealDirection = 1; // Start revealing
+        destroyedCount = 0; // Ensure it starts increasing from zero
+    }
+
+    if (revealDirection === -1) {
+        revealedWordsCount = maxWords - (Math.floor(destroyedCount / 5) % (maxWords + 1));
+    }
+
+    const paragraphs = TEXT.split('\n\n');
+    const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
+    const visibleParagraphs = visibleText.split('\n\n');
+
+    let y = boxY;
+    let lineHeight = fontSize * 1.4;
+    let paragraphSpacing = lineHeight * 0.5;
+
+    visibleParagraphs.forEach(paragraph => {
+        const lines = wrapText(paragraph, boxWidth);
+        lines.forEach(line => {
+            ctx.fillText(line, boxX, y);
+            y += lineHeight;
+        });
+        y += paragraphSpacing;
+    });
+
+    ctx.restore();
+}
+
+        function init() {
+            resizeCanvas();
+            for (let i = 0; i < SHAPE_COUNT; i++) {
+                shapes.push(new Shape());
+            }
+            window.addEventListener('resize', resizeCanvas);
+            canvas.addEventListener('click', (e) => {
+                ripples.push(new Ripple(e.clientX, e.clientY));
+            });
+            animate();
+        }
+
+        function animate() {
+    ctx.fillStyle = 'rgba(245, 243, 238, 0.8)';
+    ctx.fillRect(0, 0, width, height);
+
+    shapes.forEach((shape, index) => {
+        shape.update();
+        shape.draw();
+
+        ripples.forEach(r => {
+            const dx = shape.x - r.x;
+            const dy = shape.y - r.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance <= r.radius && distance >= r.radius - r.speed) {
+                explosions.push(new Explosion(shape.x, shape.y, shape.color));
+                shapes[index] = new Shape();
+                destroyedCount += revealDirection;
+            }
+        });
+    });
+
+    ripples = ripples.filter(r => {
+        r.draw();
+        return r.update();
+    });
+
+    explosions = explosions.filter(e => {
+        e.draw();
+        return e.update();
+    });
+
+    drawText();
+
+    requestAnimationFrame(animate);
+}
+
+        init();
+    </script>
+</body>
+</html>
