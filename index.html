@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Responsive Text Visualizer with Green Upward Floating Particles</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #f4ede3; }
+        @font-face {
+            font-family: 'BeatriceRegular';
+            src: url('fonts/BeatriceRegular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body { margin: 0; overflow: hidden; background: #fafafa; font-family: 'BeatriceRegular', Arial, sans-serif; }
         canvas { display: block; }
     </style>
 </head>
@@ -19,7 +25,7 @@
         let ripples = [];
         let explosions = [];
         let destroyedCount = 0;
-        const SHAPE_COUNT = 150;
+        const SHAPE_COUNT = 100;
         const MUTED_GREEN_COLORS = ['#4a6741', '#5a7a4e', '#6b8e5c', '#7ca26a', '#8db678']; // Muted organic greens
         const SHAPE_TYPES = ['circle', 'square', 'triangle', 'pentagon', 'hexagon'];
 
@@ -48,94 +54,102 @@
         }
 
         class Shape {
-            constructor() {
-                this.reset();
-            }
+    constructor() {
+        this.reset();
+    }
 
-            reset() {
-                this.x = Math.random() * width;
-                this.y = height + 20;
-                this.size = Math.random() * 15 + 5;
-                this.speed = Math.random() * 0.5 + 0.9;
-                this.color = MUTED_GREEN_COLORS[Math.floor(Math.random() * MUTED_GREEN_COLORS.length)];
-                this.rotation = 0;
-                this.rotationSpeed = (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? 1 : -1);
-                this.type = SHAPE_TYPES[Math.floor(Math.random() * SHAPE_TYPES.length)];
-            }
+    reset() {
+        this.x = Math.random() * width;
+        this.y = height + 20;
+        this.size = Math.random() * 15 + 5;
+        this.speed = Math.random() * 0.5 + 0.9;
+        this.color = MUTED_GREEN_COLORS[Math.floor(Math.random() * MUTED_GREEN_COLORS.length)];
+        this.rotation = 0;
+        this.rotationSpeed = (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? 1 : -1);
+        this.type = SHAPE_TYPES[Math.floor(Math.random() * SHAPE_TYPES.length)];
+        this.delay = Math.random() * 100; // Add a delay property
+    }
 
-            update() {
-                this.y -= this.speed;
-                this.rotation += this.rotationSpeed;
+    update() {
+        if (this.delay > 0) {
+            this.delay -= 1; // Decrement the delay
+            return;
+        }
 
-                if (this.y < -20) {
-                    this.reset();
-                }
-            }
+        this.y -= this.speed;
+        this.rotation += this.rotationSpeed;
 
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.rotation);
-                ctx.fillStyle = this.color;
-                ctx.strokeStyle = '#f5e6d3';
-                ctx.lineWidth = 0.5;
+        if (this.y < -20) {
+            this.reset();
+        }
+    }
 
-                switch(this.type) {
-                    case 'circle':
-                        ctx.beginPath();
-                        ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.stroke();
-                        break;
-                    case 'square':
-                        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-                        ctx.strokeRect(-this.size / 2, -this.size / 2, this.size, this.size);
-                        break;
-                    case 'triangle':
-                        ctx.beginPath();
-                        ctx.moveTo(0, -this.size / 2);
-                        ctx.lineTo(-this.size / 2, this.size / 2);
-                        ctx.lineTo(this.size / 2, this.size / 2);
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.stroke();
-                        break;
-                    case 'pentagon':
-                        this.drawPolygon(5, this.size / 2);
-                        break;
-                    case 'hexagon':
-                        this.drawPolygon(6, this.size / 2);
-                        break;
-                }
+    draw() {
+        if (this.delay > 0) return; // Skip drawing if still in delay
 
-                ctx.restore();
-            }
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        ctx.fillStyle = this.color;
+        ctx.strokeStyle = '#f5e6d3';
+        ctx.lineWidth = 0.5;
 
-            drawPolygon(sides, radius) {
+        switch(this.type) {
+            case 'circle':
                 ctx.beginPath();
-                for (let i = 0; i < sides; i++) {
-                    const angle = (i / sides) * Math.PI * 2;
-                    const x = Math.cos(angle) * radius;
-                    const y = Math.sin(angle) * radius;
-                    if (i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
+                ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                break;
+            case 'square':
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.strokeRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                break;
+            case 'triangle':
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size / 2);
+                ctx.lineTo(-this.size / 2, this.size / 2);
+                ctx.lineTo(this.size / 2, this.size / 2);
                 ctx.closePath();
                 ctx.fill();
                 ctx.stroke();
-            }
+                break;
+            case 'pentagon':
+                this.drawPolygon(5, this.size / 2);
+                break;
+            case 'hexagon':
+                this.drawPolygon(6, this.size / 2);
+                break;
         }
+
+        ctx.restore();
+    }
+
+    drawPolygon(sides, radius) {
+        ctx.beginPath();
+        for (let i = 0; i < sides; i++) {
+            const angle = (i / sides) * Math.PI * 2;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+}
 
         class Ripple {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.radius = 0;
+                this.radius = 0.9;
                 this.maxRadius = Math.max(width, height) * 0.3;
-                this.speed = 9;
+                this.speed = 3;
                 this.opacity = 0.9;
                 this.color = getColorFromPosition(x, y);
-                this.lineCount = 5;
+                this.lineCount = 10;
                 this.controlPoints = 32;
                 this.distortions = Array(this.controlPoints).fill().map(() => ({
                     angle: Math.random() * Math.PI * 2,
@@ -248,8 +262,8 @@
     ctx.save();
     
     let fontSize = Math.max(16, Math.min(24, width / 50));
-    ctx.font = `${fontSize}px Arial`;
-    ctx.fillStyle = '#5a4a41';
+    ctx.font = `${fontSize}px BeatriceRegular`;
+    ctx.fillStyle = '#000000';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
@@ -304,7 +318,7 @@
         }
 
         function animate() {
-    ctx.fillStyle = 'rgba(245, 243, 238, 0.8)';
+    ctx.fillStyle = 'rgba(250, 250, 250, 1.0)';
     ctx.fillRect(0, 0, width, height);
 
     shapes.forEach((shape, index) => {
