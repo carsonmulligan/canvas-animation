@@ -287,42 +287,30 @@
     let boxY = (height - boxHeight) / 2;
 
     let revealedWordsCount = Math.floor(destroyedCount / 15);
-//    if (revealedWordsCount > maxWords) {
-//        revealDirection = -1; // Start hiding
-//        destroyedCount = maxWords * 5; // Ensure it starts decreasing from max
-//    } else if (revealedWordsCount < 0) {
-//        revealDirection = 1; // Start revealing
-//        destroyedCount = 0; // Ensure it starts increasing from zero
-//    }
+
 if (revealedWordsCount >= maxWords) {
-    destroyedCount = maxWords * 5; // Stop incrementing after reaching max words
-} else if (revealedWordsCount < 0) {
-    destroyedCount = 0; // Ensure it starts from zero and not go negative
+    revealedWordsCount = maxWords; // Cap the revealed words count at maxWords
+    destroyedCount = maxWords * 15; // Ensure the destroyedCount also stops increasing after reaching the max
 }
 
+const paragraphs = TEXT.split('\n\n');
+const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
+const visibleParagraphs = visibleText.split('\n\n');
 
-    if (revealDirection === -1) {
-        revealedWordsCount = maxWords - (Math.floor(destroyedCount / 5) % (maxWords + 1));
-    }
+let y = boxY;
+let lineHeight = fontSize * 1.4;
+let paragraphSpacing = lineHeight * 0.5;
 
-    const paragraphs = TEXT.split('\n\n');
-    const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
-    const visibleParagraphs = visibleText.split('\n\n');
-
-    let y = boxY;
-    let lineHeight = fontSize * 1.4;
-    let paragraphSpacing = lineHeight * 0.5;
-
-    visibleParagraphs.forEach(paragraph => {
-        const lines = wrapText(paragraph, boxWidth);
-        lines.forEach(line => {
-            ctx.fillText(line, boxX, y);
-            y += lineHeight;
-        });
-        y += paragraphSpacing;
+visibleParagraphs.forEach(paragraph => {
+    const lines = wrapText(paragraph, boxWidth);
+    lines.forEach(line => {
+        ctx.fillText(line, boxX, y);
+        y += lineHeight;
     });
+    y += paragraphSpacing;
+});
 
-    ctx.restore();
+ctx.restore();
 }
 
         function init() {
