@@ -18,6 +18,14 @@
             font-family: 'SuisseIntl-Book', Arial, sans-serif; 
             overflow-y: scroll; /* Ensure the body is scrollable */
         }
+        #topImage {
+            position: absolute;
+            top: 10px; /* Adjust the value as needed */
+            left: 10px; /* Adjust the value as needed */
+            width: 50px; /* Adjust the size as needed */
+            height: auto; /* Maintain aspect ratio */
+            cursor: pointer; /* Change cursor to pointer on hover */
+        }
         #wrapper {
             width: 100%;
             height: 100%;
@@ -30,6 +38,9 @@
     </style>
 </head>
 <body>
+    <a href="https://linktr.ee/late_arrivals" target="_blank">
+        <img id="topImage" src="images/logo-horizontal-black-clear.png" alt="Late Arrivals">
+    </a>
     <canvas id="visualizer"></canvas>
     <script>
         const canvas = document.getElementById('visualizer');
