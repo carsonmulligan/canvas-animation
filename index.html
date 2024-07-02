@@ -300,17 +300,10 @@ if (revealedWordsCount >= maxWords) {
     destroyedCount = 0; // Ensure it starts from zero and not go negative
 }
 
-if (distance <= r.radius && distance >= r.radius - r.speed) {
-    explosions.push(new Explosion(shape.x, shape.y, shape.color));
-    shapes[index] = new Shape();
-    if (destroyedCount < maxWords * 5) {
-        destroyedCount++; // Only increment
-    }
-}
 
-//    if (revealDirection === -1) {
-//        revealedWordsCount = maxWords - (Math.floor(destroyedCount / 5) % (maxWords + 1));
-//    }
+    if (revealDirection === -1) {
+        revealedWordsCount = maxWords - (Math.floor(destroyedCount / 5) % (maxWords + 1));
+    }
 
     const paragraphs = TEXT.split('\n\n');
     const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
