@@ -277,7 +277,7 @@
     let boxX = (width - boxWidth) / 2;
     let boxY = (height - boxHeight) / 2;
 
-//    let revealedWordsCount = Math.floor(destroyedCount / 5);
+    let revealedWordsCount = Math.floor(destroyedCount / 5);
 //    if (revealedWordsCount > maxWords) {
 //        revealDirection = -1; // Start hiding
 //        destroyedCount = maxWords * 5; // Ensure it starts decreasing from max
@@ -285,6 +285,12 @@
 //        revealDirection = 1; // Start revealing
 //        destroyedCount = 0; // Ensure it starts increasing from zero
 //    }
+if (revealedWordsCount >= maxWords) {
+    destroyedCount = maxWords * 5; // Stop incrementing after reaching max words
+} else if (revealedWordsCount < 0) {
+    destroyedCount = 0; // Ensure it starts from zero and not go negative
+}
+
 
     if (revealDirection === -1) {
         revealedWordsCount = maxWords - (Math.floor(destroyedCount / 5) % (maxWords + 1));
