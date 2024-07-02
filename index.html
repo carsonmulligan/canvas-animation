@@ -6,8 +6,8 @@
     <title>Responsive Text Visualizer with Green Upward Floating Particles</title>
     <style>
         @font-face {
-            font-family: 'BeatriceRegular';
-            src: url('fonts/BeatriceRegular.otf') format('opentype');
+            font-family: 'SuisseIntl-Medium';
+            src: url('fonts/SuisseIntl-Medium.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
         }
@@ -15,7 +15,7 @@
             margin: 0; 
             overflow: hidden; 
             background: #fafafa; 
-            font-family: 'BeatriceRegular', Arial, sans-serif; 
+            font-family: 'SuisseIntl-Medium', Arial, sans-serif; 
             overflow-y: scroll; /* Ensure the body is scrollable */
         }
         #wrapper {
@@ -276,7 +276,7 @@
     ctx.save();
     
     let fontSize = Math.max(14, Math.min(24, width / 50));
-    ctx.font = `${fontSize}px BeatriceRegular`;
+    ctx.font = `${fontSize}px SuisseIntl-Medium`;
     ctx.fillStyle = '#000000';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
