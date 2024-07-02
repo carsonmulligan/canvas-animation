@@ -17,7 +17,15 @@
             background: #fafafa; 
             font-family: 'BeatriceRegular', Arial, sans-serif; 
         }
-        canvas { display: block; }
+        #wrapper {
+            width: 100%;
+            height: 100%;
+        }
+        canvas { 
+            display: block; 
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
@@ -277,7 +285,7 @@
     let boxX = (width - boxWidth) / 2;
     let boxY = (height - boxHeight) / 2;
 
-    let revealedWordsCount = Math.floor(destroyedCount / 5);
+    let revealedWordsCount = Math.floor(destroyedCount / 10);
 //    if (revealedWordsCount > maxWords) {
 //        revealDirection = -1; // Start hiding
 //        destroyedCount = maxWords * 5; // Ensure it starts decreasing from max
