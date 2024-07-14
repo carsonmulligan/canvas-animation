@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Floating Circles with Adjusted Sizes and Padding</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #f0f0f0; font-size: 16px; }
-        canvas { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
+        body { margin: 0; overflow: visible; background-color: #f0f0f0; font-size: 16px; min-height: 100vh }
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
         #controls { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.7); padding: 10px; z-index: 10; }
         #layout-container {
-            position: absolute;
+            position: relative;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -21,19 +22,23 @@
             pointer-events: none;
         }
         #window-circle {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
             width: 8rem;
             height: 8rem;
-            margin-top: 2rem;
             border-radius: 50%;
             overflow: hidden;
             pointer-events: none;
             padding: 0.5rem;
             background-color: rgba(255, 255, 255, 0.2);
+            z-index: 2;  /* Ensure it's above the canvas but below other elements */
         }
         #overlay {
-            width: 80%;
+            width: 90%;
             max-width: 600px;
-            height: 60%;
+            height: 100%;
             margin-top: 2rem;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
@@ -66,9 +71,13 @@
     <div id="layout-container">
         <div id="window-circle"></div>
         <div id="overlay">
-            <!-- Replace the src with your actual embedded form URL -->
-            <iframe src="about:blank" frameborder="0"></iframe>
+            <script src="https://embed.pickaxeproject.com/axe/scripts/pickaxe-parent.js"></script>
+<iframe id=YZIESOCTXJ loading="eager" src="https://embed.pickaxeproject.com/axe?id=Synesthesia_IPLCU&mode=embed_gold&host=beta&theme=custom&opacity=50&image=hide&title=hide&description=hide&font_header=Space+Grotesk&size_header=12&font_body=Space+Grotesk&size_body=14&font_labels=Space+Grotesk&size_labels=12&font_button=Space+Grotesk&size_button=14&c_fb=F1F3F4&c_ff=FFFFFF&c_fbd=030303&c_rb=FFFFFF&c_bb=EF476F&c_bt=000000&c_t=000000&s_ffo=50&s_rbo=0&s_bbo=100&s_f=minimalist&s_b=outline&s_t=2&s_to=0&s_r=8&height=auto&minH=500" width="100%" height="100%"  style="border:0px solid rgba(0, 0, 0, 0.5);transition:.3s;border-radius:5px;max-height:100%" frameBorder="0"></iframe>
+<script>
+	iFrameResize({heightCalculationMethod:'taggedElement', minHeight: '500px' }, '#YZIESOCTXJ')
+</script>
         </div>
+        
     </div>
     <script>
         (function() {
@@ -77,6 +86,44 @@
             const blendModeSelect = document.getElementById('blendMode');
             const opacityInput = document.getElementById('opacity');
             const windowCircle = document.getElementById('window-circle');
+
+            const iframe = document.getElementById('YZIESOCTXJ');
+            let iframeResizing = false;
+            let resizeTimeout;
+            const resizeDelay = 500; // Adjust this value as needed
+
+            // New state variable
+            let animationState = 'normal'; // Possible states: 'normal', 'returning', 'explosive'
+
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        if (!iframeResizing) {
+                            iframeResizing = true;
+                            console.log('Iframe started resizing');
+                            if (animationState === 'normal') {
+                                initiateReturn();
+                            }
+                        }
+
+                        clearTimeout(resizeTimeout);
+
+                        resizeTimeout = setTimeout(() => {
+                            iframeResizing = false;
+                            console.log('Iframe finished resizing');
+                            if (animationState === 'returning') {
+                                initiateExplosiveRelease();
+                            }
+                        }, resizeDelay);
+                    }
+                });
+            });
+
+            observer.observe(iframe, {
+                attributes: true,
+                attributeFilter: ['style']
+            });
+
 
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
@@ -160,13 +207,16 @@
             }
 
             function initiateReturn() {
+                animationState = 'returning';
                 isReturning = true;
                 returnStartTime = Date.now();
+                windowCirclePos = updateWindowCirclePosition();
                 circles.forEach(circle => {
                     circle.startX = circle.x;
                     circle.startY = circle.y;
                     circle.distance = distanceToCenter(circle);
                 });
+
             }
 
             function updateReturnMotion(circle) {
@@ -189,12 +239,22 @@
             }
 
             function initiateExplosiveRelease() {
+                animationState = 'explosive';
+                windowCirclePos = updateWindowCirclePosition();
                 circles.forEach(circle => {
-                    const angle = Math.random() * Math.PI * 2;
+                    const dx = circle.x - windowCirclePos.x;
+                    const dy = circle.y - windowCirclePos.y;
+                    const angle = Math.atan2(dy, dx);
                     circle.vx = Math.cos(angle) * explosiveSpeed;
                     circle.vy = Math.sin(angle) * explosiveSpeed;
                 });
+                
+                // Set a timeout to return to normal state after explosion
+                setTimeout(() => {
+                    animationState = 'normal';
+                }, 2000); // Adjust this time as needed
             }
+
 
             function drawWindowCircle() {
                 ctx.save();
