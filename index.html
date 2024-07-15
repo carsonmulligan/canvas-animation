@@ -119,10 +119,18 @@
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rotation);
-        ctx.globalAlpha = 0.8;
-        ctx.fillStyle = this.color;
-        ctx.strokeStyle = '#f5e6d3';
-        ctx.lineWidth = 0.5;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 15;
+        ctx.globalAlpha = 0.7;
+        
+        // Create a radial gradient for the glow
+        const gradient = ctx.createRadialGradient(0, 0, this.size / 4, 0, 0, this.size);
+        gradient.addColorStop(0, this.color);
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
 
         switch(this.type) {
             case 'circle':
