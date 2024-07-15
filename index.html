@@ -121,11 +121,12 @@
         ctx.rotate(this.rotation);
         ctx.shadowColor = this.color;
         ctx.shadowBlur = 8;
-        ctx.globalAlpha = 0.7;
+        ctx.globalAlpha = 0.8;
 
         // Create a radial gradient for the glow
-        const gradient = ctx.createRadialGradient(0, 0, this.size / 4, 0, 0, this.size);
+        const gradient = ctx.createRadialGradient(0, 0, this.size / 3, 0, 0, this.size);
         gradient.addColorStop(0, this.color);
+        gradient.addColorStop(0.7, this.color + '40'); // 40 is 25% opacity in hex
         gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
         ctx.fillStyle = gradient;
