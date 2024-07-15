@@ -296,8 +296,10 @@
             // Calculate starting Y position for the full text to be centered
             let startY = (height - totalHeight) / 2;
 
-            // Calculate how much text to reveal (15 words per shape destroyed)
-            let revealedWordsCount = destroyedCount * 15;
+            // Calculate how much text to reveal
+            let revealedWordsCount = Math.floor(destroyedCount / 15);
+            // Remove this line to allow all words to be revealed:
+            // revealedWordsCount = Math.min(revealedWordsCount, TOTAL_WORDS);
 
             let y = startY;
             let wordCount = 0;
@@ -325,6 +327,7 @@
 
             ctx.restore();
         }
+
 
         function wrapText(text, maxWidth) {
             let words = text.split(' ');
