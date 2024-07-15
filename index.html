@@ -267,6 +267,55 @@
             }
         }
 
+        function drawText() {
+            ctx.save();
+            
+            let fontSize = Math.max(14, Math.min(24, width / 50));
+            ctx.font = `${fontSize}px SuisseIntl-Book`;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+
+            let boxWidth = Math.min(width * 0.9, 800);
+            let boxX = (width - boxWidth) / 2;
+
+            let revealedWordsCount = Math.floor(destroyedCount / 15);
+
+            if (revealedWordsCount >= maxWords) {
+                revealedWordsCount = maxWords;
+                destroyedCount = maxWords * 15;
+            }
+
+            const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
+            const visibleParagraphs = visibleText.split('\n\n');
+
+            let lineHeight = fontSize * 1.4;
+            let paragraphSpacing = lineHeight * 0.5;
+
+            // Calculate total height of text
+            let totalHeight = 0;
+            visibleParagraphs.forEach(paragraph => {
+                const lines = wrapText(paragraph, boxWidth);
+                totalHeight += lines.length * lineHeight + paragraphSpacing;
+            });
+            totalHeight -= paragraphSpacing; // Remove last paragraph spacing
+
+            // Calculate starting Y position to center text vertically
+            let startY = (height - totalHeight) / 2;
+            let y = startY;
+
+            visibleParagraphs.forEach(paragraph => {
+                const lines = wrapText(paragraph, boxWidth);
+                lines.forEach(line => {
+                    ctx.fillText(line, boxX, y);
+                    y += lineHeight;
+                });
+                y += paragraphSpacing;
+            });
+
+            ctx.restore();
+        }
+
         function wrapText(text, maxWidth) {
             let words = text.split(' ');
             let lines = [];
@@ -285,47 +334,6 @@
             lines.push(currentLine);
             return lines;
         }
-
-        function drawText() {
-    ctx.save();
-    
-    let fontSize = Math.max(14, Math.min(24, width / 50));
-    ctx.font = `${fontSize}px SuisseIntl-Book`;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-
-    let boxWidth = Math.min(width * 0.9, 800);
-    let boxHeight = height * 0.8;
-    let boxX = (width - boxWidth) / 2;
-    let boxY = (height - boxHeight) / 2;
-
-    let revealedWordsCount = Math.floor(destroyedCount / 15);
-
-if (revealedWordsCount >= maxWords) {
-    revealedWordsCount = maxWords; // Cap the revealed words count at maxWords
-    destroyedCount = maxWords * 15; // Ensure the destroyedCount also stops increasing after reaching the max
-}
-
-const paragraphs = TEXT.split('\n\n');
-const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
-const visibleParagraphs = visibleText.split('\n\n');
-
-let y = boxY;
-let lineHeight = fontSize * 1.4;
-let paragraphSpacing = lineHeight * 0.5;
-
-visibleParagraphs.forEach(paragraph => {
-    const lines = wrapText(paragraph, boxWidth);
-    lines.forEach(line => {
-        ctx.fillText(line, boxX, y);
-        y += lineHeight;
-    });
-    y += paragraphSpacing;
-});
-
-ctx.restore();
-}
 
         function init() {
             resizeCanvas();
