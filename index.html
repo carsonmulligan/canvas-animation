@@ -302,7 +302,7 @@
             totalHeight -= paragraphSpacing; // Remove last paragraph spacing
 
             // Calculate starting Y position for the full text to be centered
-            let startY = (height - totalHeight) / 2;
+            let startY = height * 0.15; // Start at 15% of the canvas height
 
             // Calculate how much text to reveal
             let revealedWordsCount = Math.floor(destroyedCount / 15);
