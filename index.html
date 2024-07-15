@@ -279,39 +279,52 @@
             let boxWidth = Math.min(width * 0.9, 800);
             let boxX = (width - boxWidth) / 2;
 
-            let revealedWordsCount = Math.floor(destroyedCount / 15);
-
-            if (revealedWordsCount >= maxWords) {
-                revealedWordsCount = maxWords;
-                destroyedCount = maxWords * 15;
-            }
-
-            const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
-            const visibleParagraphs = visibleText.split('\n\n');
-
             let lineHeight = fontSize * 1.4;
             let paragraphSpacing = lineHeight * 0.5;
 
-            // Calculate total height of text
+            // Calculate total height of the full text
             let totalHeight = 0;
-            visibleParagraphs.forEach(paragraph => {
+            const allParagraphs = TEXT.split('\n\n');
+            allParagraphs.forEach(paragraph => {
                 const lines = wrapText(paragraph, boxWidth);
                 totalHeight += lines.length * lineHeight + paragraphSpacing;
             });
             totalHeight -= paragraphSpacing; // Remove last paragraph spacing
 
-            // Calculate starting Y position to center text vertically
+            // Calculate starting Y position for the full text to be centered
             let startY = (height - totalHeight) / 2;
-            let y = startY;
 
-            visibleParagraphs.forEach(paragraph => {
+            // Calculate how much text to reveal
+            let revealedWordsCount = Math.floor(destroyedCount / 15);
+            if (revealedWordsCount > WORDS.length) {
+                revealedWordsCount = WORDS.length;
+            }
+
+            let y = startY;
+            let wordCount = 0;
+
+            for (let paragraph of allParagraphs) {
                 const lines = wrapText(paragraph, boxWidth);
-                lines.forEach(line => {
-                    ctx.fillText(line, boxX, y);
+                for (let line of lines) {
+                    const lineWords = line.split(' ');
+                    let revealedLine = '';
+                    for (let word of lineWords) {
+                        if (wordCount < revealedWordsCount) {
+                            revealedLine += word + ' ';
+                            wordCount++;
+                        } else {
+                            break;
+                        }
+                    }
+                    if (revealedLine) {
+                        ctx.fillText(revealedLine.trim(), boxX, y);
+                    }
                     y += lineHeight;
-                });
+                    if (wordCount >= revealedWordsCount) break;
+                }
                 y += paragraphSpacing;
-            });
+                if (wordCount >= revealedWordsCount) break;
+            }
 
             ctx.restore();
         }
@@ -334,6 +347,7 @@
             lines.push(currentLine);
             return lines;
         }
+
 
         function init() {
             resizeCanvas();
