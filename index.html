@@ -21,6 +21,20 @@
             overflow-y: scroll; /* Ensure the body is scrollable */
             position: relative; /* To position the image relative to the body */
         }
+
+        #textContainer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
         #topImage {
             display: block;
             margin: 8px auto; /* Center the image horizontally */
@@ -287,44 +301,47 @@
         }
 
         function drawText() {
-    ctx.save();
-    
-    let fontSize = Math.max(14, Math.min(24, width / 50));
-    ctx.font = `${fontSize}px SuisseIntl-Book`;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
+            const textContainer = document.getElementById('textContainer');
+            textContainer.innerHTML = ''; // Clear previous content
 
-    let boxWidth = Math.min(width * 0.9, 800);
-    let boxHeight = height * 0.8;
-    let boxX = (width - boxWidth) / 2;
-    let boxY = (height - boxHeight) / 2;
+            let fontSize = Math.max(14, Math.min(24, width / 50));
+            textContainer.style.fontSize = `${fontSize}px`;
+            
+            ctx.save();
+            
+            let fontSize = Math.max(14, Math.min(24, width / 50));
+            ctx.font = `${fontSize}px SuisseIntl-Book`;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
 
-    let revealedWordsCount = Math.floor(destroyedCount / 15);
+            let boxWidth = Math.min(width * 0.9, 800);
+            let boxHeight = height * 0.8;
+            let boxX = (width - boxWidth) / 2;
+            let boxY = (height - boxHeight) / 2;
 
-if (revealedWordsCount >= maxWords) {
-    revealedWordsCount = maxWords; // Cap the revealed words count at maxWords
-    destroyedCount = maxWords * 15; // Ensure the destroyedCount also stops increasing after reaching the max
-}
+            let revealedWordsCount = Math.floor(destroyedCount / 15);
 
-const paragraphs = TEXT.split('\n\n');
-const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
-const visibleParagraphs = visibleText.split('\n\n');
+            if (revealedWordsCount >= maxWords) {
+                revealedWordsCount = maxWords; // Cap the revealed words count at maxWords
+                destroyedCount = maxWords * 15; // Ensure the destroyedCount also stops increasing after reaching the max
+            }
 
-let y = boxY;
-let lineHeight = fontSize * 1.4;
-let paragraphSpacing = lineHeight * 0.5;
+            const paragraphs = TEXT.split('\n\n');
+            const visibleText = WORDS.slice(0, revealedWordsCount).join(' ');
+            const visibleParagraphs = visibleText.split('\n\n');
 
-visibleParagraphs.forEach(paragraph => {
-    const lines = wrapText(paragraph, boxWidth);
-    lines.forEach(line => {
-        ctx.fillText(line, boxX, y);
-        y += lineHeight;
-    });
-    y += paragraphSpacing;
-});
+            let y = boxY;
+            let lineHeight = fontSize * 1.4;
+            let paragraphSpacing = lineHeight * 0.5;
 
-ctx.restore();
+            visibleParagraphs.forEach(paragraph => {
+                const p = document.createElement('p');
+        p.textContent = paragraph;
+        textContainer.appendChild(p);
+            });
+
+            ctx.restore();
 }
 
         function init() {
