@@ -37,6 +37,17 @@
             width: 100%;
             height: calc(100vh - 2rem); /* Ensure the canvas height is auto */
         }
+        #textOverlay {
+            position: absolute;
+            top: 4rem; /* 4rem from the top */
+            left: 0;
+            right: 0;
+            padding: 0 5%;
+            color: rgba(0, 0, 0, 0.6);
+            font-size: 16px;
+            line-height: 1.4;
+            pointer-events: none; /* Allow clicks to pass through to the canvas */
+        }
     </style>
 </head>
 <body>
@@ -277,64 +288,7 @@
             }
         }
 
-        function drawText() {
-            ctx.save();
-            
-            let fontSize = Math.max(14, Math.min(24, width / 50));
-            ctx.font = `${fontSize}px SuisseIntl-Book`;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-
-            let boxWidth = Math.min(width * 0.9, 800);
-            let boxX = (width - boxWidth) / 2;
-
-            let lineHeight = fontSize * 1.4;
-            let paragraphSpacing = lineHeight * 0.5;
-
-            // Calculate total height of the full text
-            let totalHeight = 0;
-            const allParagraphs = TEXT.split('\n\n');
-            allParagraphs.forEach(paragraph => {
-                const lines = wrapText(paragraph, boxWidth);
-                totalHeight += lines.length * lineHeight + paragraphSpacing;
-            });
-            totalHeight -= paragraphSpacing; // Remove last paragraph spacing
-
-            // Calculate starting Y position for the full text to be centered
-            let startY = (height - totalHeight) / 2;
-
-            // Calculate how much text to reveal
-            let revealedWordsCount = Math.floor(destroyedCount / 15);
-            // Remove this line to allow all words to be revealed:
-            // revealedWordsCount = Math.min(revealedWordsCount, TOTAL_WORDS);
-
-            let y = startY;
-            let wordCount = 0;
-
-            for (let paragraph of allParagraphs) {
-                const lines = wrapText(paragraph, boxWidth);
-                for (let line of lines) {
-                    const lineWords = line.split(' ');
-                    let revealedLine = '';
-                    for (let word of lineWords) {
-                        if (wordCount < revealedWordsCount) {
-                            revealedLine += word + ' ';
-                            wordCount++;
-                        } else {
-                            break;
-                        }
-                    }
-                    if (revealedLine) {
-                        ctx.fillText(revealedLine.trim(), boxX, y);
-                    }
-                    y += lineHeight;
-                }
-                y += paragraphSpacing;
-            }
-
-            ctx.restore();
-        }
+        
 
 
         function wrapText(text, maxWidth) {
@@ -369,6 +323,23 @@
             animate();
         }
 
+        const textOverlay = document.getElementById('textOverlay');
+
+function updateText() {
+    let revealedWordsCount = Math.floor(destroyedCount / 15);
+    let revealedText = WORDS.slice(0, revealedWordsCount).join(' ');
+    
+    // Split the revealed text into paragraphs
+    let paragraphs = revealedText.split('\n\n');
+    
+    // Create HTML for the paragraphs
+    let html = paragraphs.map(p => `<p>${p}</p>`).join('');
+    
+    // Update the text overlay
+    textOverlay.innerHTML = html;
+}
+
+
         function animate() {
     ctx.fillStyle = 'rgba(250, 250, 250, .3)';
     ctx.fillRect(0, 0, width, height);
@@ -399,7 +370,7 @@
         return e.update();
     });
 
-    drawText();
+    updateText(); // Update the text overlay
 
     requestAnimationFrame(animate);
 }
