@@ -3,68 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Responsive Text Visualizer with Green Upward Floating Particles</title>
+    <title>Text Visualizer with Overlay Navigation</title>
     <style>
         @font-face {
-            font-family: 'SuisseIntl-Book';
-            src: url('fonts/SuisseIntl-Book.otf') format('opentype');
+            font-family: 'Suisse Intl';
+            src: url('fonts/SuisseIntl-Regular.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
-            color: rgba(255, 0, 0, 0.5);
         }
-        body { 
+
+        body, html { 
             margin: 0; 
-            overflow: hidden; 
-            background: #fafafa; 
-            font-family: 'SuisseIntl-Book', Arial, sans-serif; 
-            color: rgba(255, 0, 0, 0.5);
-            overflow-y: scroll; /* Ensure the body is scrollable */
-            position: relative; /* To position the image relative to the body */
-        }
-        #topImage {
-            display: block;
-            margin: 8px auto; /* Center the image horizontally */
-            width: auto; /* Adjust the size as needed */
-            height: 2rem; /* Maintain aspect ratio */
-            cursor: pointer; /* Change cursor to pointer on hover */
+            padding: 0;
+            height: 100%;
+            font-family: 'Suisse Intl', Arial, sans-serif;
+            overflow: hidden;
         }
         #wrapper {
-            width: 100%;
-            height: 100%;
+            position: relative;
+            min-height: 100vh;
+        }
+        nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        #topImage {
+            height: 2rem;
+            width: auto;
+        }
+        .nav-arrows {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav-arrow {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        main {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: 1fr minmax(auto, 640px) 1fr;
+            padding-top: 4rem; /* Adjust based on nav height */
         }
         canvas { 
-            display: block; 
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: calc(100vh - 2rem); /* Ensure the canvas height is auto */
+            height: 100%;
+            z-index: 1;
+        }
+        #textContainer {
+            grid-column: 2;
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.2);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 2rem 1rem;
+            color: rgba(0, 0, 0, 0.7);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            overflow-y: auto;
+            max-height: calc(100vh - 8rem); /* Adjust based on nav height and margins */
+        }
+        #textContent {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        #textContainer p {
+            margin: 0 0 1em 0;
+            padding: 0;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1rem minmax(auto, calc(100% - 2rem)) 1rem;
+            }
+            #textContainer {
+                margin: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <a href="https://linktr.ee/late_arrivals" target="_blank">
-        <img id="topImage" src="images/logo-horizontal-black-clear.png" alt="Late Arrivals">
-    </a>
-    <canvas id="visualizer"></canvas>
+    <div id="wrapper">
+        <canvas id="visualizer"></canvas>
+        <nav>
+            <a href="https://linktr.ee/late_arrivals" target="_blank">
+                <img id="topImage" src="images/logo-horizontal-black-clear.png" alt="Late Arrivals">
+            </a>
+            <div class="nav-arrows">
+                <span class="nav-arrow">&#8592;</span>
+                <span class="nav-arrow">&#8594;</span>
+            </div>
+        </nav>
+        <main>
+            <div id="textContainer">
+                <div id="textContent"></div>
+            </div>
+        </main>
+    </div>
     <script>
         const canvas = document.getElementById('visualizer');
         const ctx = canvas.getContext('2d');
+        const textContainer = document.getElementById('textContainer');
         let width, height;
         let shapes = [];
         let ripples = [];
         let explosions = [];
         let destroyedCount = 0;
         const SHAPE_COUNT = 100;
-        const MUTED_GREEN_COLORS = ['#4a6741', '#5a7a4e', '#6b8e5c', '#7ca26a', '#8db678']; // Muted organic greens
+        const MUTED_GREEN_COLORS = ['#4a6741', '#5a7a4e', '#6b8e5c', '#7ca26a', '#8db678'];
         const SHAPE_TYPES = ['circle', 'square', 'triangle', 'pentagon', 'hexagon'];
-
-        let revealing = true;
-         // Define the maximum number of words to display at once
-        let revealDirection = 1; // 1 for revealing, -1 for hiding
 
         const TEXT = "Nobody knows or cares who invented the words we use every day. We skate on the surface of stolen symbols—unaware of all the literature, letters, gossip, slang, jokes, all the lived-life that got folded into each syllable. Unaware of all the iterative cycles through tribes and trade these words passed through to get polished into their current form. \n\n'Word travels fast.' Fast test runs. Fast mutations. \n\nNow AI is forcing this same process onto images, sound, code, identity, all media, myth, and memes—they're all becoming liquid like words. And it hurts. Because those expressions took a lot of effort to build at those first layers of creative connection. And it's unfair and sad to see an artist's career get compressed into a data paintbrush. There's no moral defense of it at the individual level. Just as there's no realistic defense against it at the global level. \n\nCall it creative destruction, cultural ratcheting, or collaborative tech. From hand-craft to idea-craft, we're climbing up the layers of abstraction, a massive network rising to task: a great translation. \n\nAs an amoral force of nature, information simply wants freedom. Like a plant outgrowing it's pot, our stories push past the edges. And as the current informational containers, we can still shape it, even if we can't stop its directional flow: \n\nonward, outward, upward.";
 
         const WORDS = TEXT.split(/\s+/);
-        const TOTAL_WORDS = WORDS.length;
-
 
         function resizeCanvas() {
             width = canvas.width = window.innerWidth;
@@ -77,106 +146,84 @@
             return `hsl(${hue}, 100%, ${lightness}%)`;
         }
 
-        function getMutedCoolColor(x, y) {
-            const hue = (180 + (x / width * 180)) % 360;
-            return `hsl(${hue}, 30%, 60%)`;
-        }
-
         class Shape {
-             constructor() {
-                 this.reset();
-         }
+            constructor() {
+                this.reset();
+            }
 
-         reset() {
-            this.x = Math.random() * width;
-            this.y = height + 20;
-            this.size = Math.random() * 15 + 15;
-            this.speed = Math.random() * 0.5 + 0.9;
-            this.color = MUTED_GREEN_COLORS[Math.floor(Math.random() * MUTED_GREEN_COLORS.length)];
-            this.rotation = 0;
-            this.rotationSpeed = (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? 1 : -1);
-            this.type = SHAPE_TYPES[Math.floor(Math.random() * SHAPE_TYPES.length)];
-            this.delay = Math.random() * 100; // Add a delay property
-        }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = height + 20;
+                this.size = Math.random() * 15 + 15;
+                this.speed = Math.random() * 0.5 + 0.9;
+                this.color = MUTED_GREEN_COLORS[Math.floor(Math.random() * MUTED_GREEN_COLORS.length)];
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? 1 : -1);
+                this.type = SHAPE_TYPES[Math.floor(Math.random() * SHAPE_TYPES.length)];
+            }
 
-        update() {
-            if (this.delay > 0) {
-                this.delay -= 1; // Decrement the delay
-                return;
-             }
+            update() {
+                this.y -= this.speed;
+                this.rotation += this.rotationSpeed;
 
-        this.y -= this.speed;
-        this.rotation += this.rotationSpeed;
+                if (this.y < -20) {
+                    this.reset();
+                }
+            }
 
-        if (this.y < -20) {
-            this.reset();
-        }
-    }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.fillStyle = this.color;
+                ctx.strokeStyle = 'rgba(221, 161, 94, 0.8)';
+                ctx.lineWidth = 1;
 
-    draw() {
-        if (this.delay > 0) return; // Skip drawing if still in delay
+                switch(this.type) {
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                        break;
+                    case 'square':
+                        ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                        ctx.strokeRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                        break;
+                    case 'triangle':
+                        ctx.beginPath();
+                        ctx.moveTo(0, -this.size / 2);
+                        ctx.lineTo(-this.size / 2, this.size / 2);
+                        ctx.lineTo(this.size / 2, this.size / 2);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
+                        break;
+                    case 'pentagon':
+                        this.drawPolygon(5, this.size / 2);
+                        break;
+                    case 'hexagon':
+                        this.drawPolygon(6, this.size / 2);
+                        break;
+                }
 
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        ctx.shadowColor = this.color;
-        ctx.globalAlpha = 0.8;
+                ctx.restore();
+            }
 
-        // Create a radial gradient for the glow
-        const gradient = ctx.createRadialGradient(0, 0, this.size / 3, 0, 0, this.size);
-        gradient.addColorStop(0, this.color);
-        gradient.addColorStop(0.7, this.color + '40'); // 40 is 25% opacity in hex
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-        ctx.fillStyle = gradient;
-        ctx.strokeStyle = 'rgba(221, 161, 94, 0.8)';
-        ctx.lineWidth = 1;
-
-        switch(this.type) {
-            case 'circle':
+            drawPolygon(sides, radius) {
                 ctx.beginPath();
-                ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-                break;
-            case 'square':
-                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-                ctx.strokeRect(-this.size / 2, -this.size / 2, this.size, this.size);
-                break;
-            case 'triangle':
-                ctx.beginPath();
-                ctx.moveTo(0, -this.size / 2);
-                ctx.lineTo(-this.size / 2, this.size / 2);
-                ctx.lineTo(this.size / 2, this.size / 2);
+                for (let i = 0; i < sides; i++) {
+                    const angle = (i / sides) * Math.PI * 2;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
                 ctx.closePath();
                 ctx.fill();
                 ctx.stroke();
-                break;
-            case 'pentagon':
-                this.drawPolygon(5, this.size / 2);
-                break;
-            case 'hexagon':
-                this.drawPolygon(6, this.size / 2);
-                break;
+            }
         }
-
-        ctx.restore();
-    }
-
-    drawPolygon(sides, radius) {
-        ctx.beginPath();
-        for (let i = 0; i < sides; i++) {
-            const angle = (i / sides) * Math.PI * 2;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-    }
-}
 
         class Ripple {
             constructor(x, y) {
@@ -277,85 +324,11 @@
             }
         }
 
-        function drawText() {
-            ctx.save();
-            
-            let fontSize = Math.max(14, Math.min(24, width / 50));
-            ctx.font = `${fontSize}px SuisseIntl-Book`;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-
-            let boxWidth = Math.min(width * 0.9, 800);
-            let boxX = (width - boxWidth) / 2;
-
-            let lineHeight = fontSize * 1.4;
-            let paragraphSpacing = lineHeight * 0.5;
-
-            // Calculate total height of the full text
-            let totalHeight = 0;
-            const allParagraphs = TEXT.split('\n\n');
-            allParagraphs.forEach(paragraph => {
-                const lines = wrapText(paragraph, boxWidth);
-                totalHeight += lines.length * lineHeight + paragraphSpacing;
-            });
-            totalHeight -= paragraphSpacing; // Remove last paragraph spacing
-
-            // Calculate starting Y position for the full text to be centered
-            let startY = (height - totalHeight) / 2;
-
-            // Calculate how much text to reveal
-            let revealedWordsCount = Math.floor(destroyedCount / 15);
-            // Remove this line to allow all words to be revealed:
-            // revealedWordsCount = Math.min(revealedWordsCount, TOTAL_WORDS);
-
-            let y = startY;
-            let wordCount = 0;
-
-            for (let paragraph of allParagraphs) {
-                const lines = wrapText(paragraph, boxWidth);
-                for (let line of lines) {
-                    const lineWords = line.split(' ');
-                    let revealedLine = '';
-                    for (let word of lineWords) {
-                        if (wordCount < revealedWordsCount) {
-                            revealedLine += word + ' ';
-                            wordCount++;
-                        } else {
-                            break;
-                        }
-                    }
-                    if (revealedLine) {
-                        ctx.fillText(revealedLine.trim(), boxX, y);
-                    }
-                    y += lineHeight;
-                }
-                y += paragraphSpacing;
-            }
-
-            ctx.restore();
+        function updateText() {
+            let revealedCharCount = Math.floor(destroyedCount / 3);
+            let revealedText = TEXT.slice(0, revealedCharCount);
+            textContent.innerHTML = revealedText + '<span class="cursor"></span>';
         }
-
-
-        function wrapText(text, maxWidth) {
-            let words = text.split(' ');
-            let lines = [];
-            let currentLine = words[0];
-
-            for (let i = 1; i < words.length; i++) {
-                let word = words[i];
-                let width = ctx.measureText(currentLine + " " + word).width;
-                if (width < maxWidth) {
-                    currentLine += " " + word;
-                } else {
-                    lines.push(currentLine);
-                    currentLine = word;
-                }
-            }
-            lines.push(currentLine);
-            return lines;
-        }
-
 
         function init() {
             resizeCanvas();
@@ -363,46 +336,50 @@
                 shapes.push(new Shape());
             }
             window.addEventListener('resize', resizeCanvas);
-            canvas.addEventListener('click', (e) => {
+            
+            // Change this line to listen for clicks on the entire document
+            document.addEventListener('click', (e) => {
                 ripples.push(new Ripple(e.clientX, e.clientY));
             });
+
             animate();
+
         }
 
         function animate() {
-    ctx.fillStyle = 'rgba(250, 250, 250, .3)';
-    ctx.fillRect(0, 0, width, height);
+            ctx.clearRect(0, 0, width, height);
 
-    shapes.forEach((shape, index) => {
-        shape.update();
-        shape.draw();
+            ctx.globalAlpha = 0.8; // Adjust this value between 0 and 1 to change transparency
 
-        ripples.forEach(r => {
-            const dx = shape.x - r.x;
-            const dy = shape.y - r.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance <= r.radius && distance >= r.radius - r.speed) {
-                explosions.push(new Explosion(shape.x, shape.y, shape.color));
-                shapes[index] = new Shape();
-                destroyedCount += revealDirection;
-            }
-        });
-    });
+            shapes.forEach((shape, index) => {
+                shape.update();
+                shape.draw();
 
-    ripples = ripples.filter(r => {
-        r.draw();
-        return r.update();
-    });
+                ripples.forEach(r => {
+                    const dx = shape.x - r.x;
+                    const dy = shape.y - r.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance <= r.radius && distance >= r.radius - r.speed) {
+                        explosions.push(new Explosion(shape.x, shape.y, shape.color));
+                        shapes[index] = new Shape();
+                        destroyedCount++;
+                        updateText();
+                    }
+                });
+            });
 
-    explosions = explosions.filter(e => {
-        e.draw();
-        return e.update();
-    });
+            ripples = ripples.filter(r => {
+                r.draw();
+                return r.update();
+            });
 
-    drawText();
+            explosions = explosions.filter(e => {
+                e.draw();
+                return e.update();
+            });
 
-    requestAnimationFrame(animate);
-}
+            requestAnimationFrame(animate);
+        }
 
         init();
     </script>
