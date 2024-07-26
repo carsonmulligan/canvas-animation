@@ -52,18 +52,19 @@
             border: none;
             border-radius: 10px;
         }
-        /* Add these new styles for the navigation */
-        #top-nav {
-            position: fixed;
+        nav {
+            position: absolute;
             top: 0;
             left: 0;
             right: 0;
+            z-index: 3;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            background-color: rgba(255,255,255,0.7);
-            z-index: 15;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
         #topImage {
             height: 2rem;
@@ -76,11 +77,13 @@
         .nav-arrow {
             font-size: 1.5rem;
             cursor: pointer;
+            user-select: none;
         }
     </style>
 </head>
 <body>
-    <nav id="top-nav">
+    <canvas id="canvas"></canvas>
+    <nav>
         <a href="https://linktr.ee/late_arrivals" target="_blank">
             <img id="topImage" src="images/logo-horizontal-black-clear.png" alt="Late Arrivals">
         </a>
@@ -89,8 +92,6 @@
             <span class="nav-arrow" id="nextApp">&#8594;</span>
         </div>
     </nav>
-
-    <canvas id="canvas"></canvas>
     <div id="controls">
         <label>Blend Mode: 
             <select id="blendMode">
