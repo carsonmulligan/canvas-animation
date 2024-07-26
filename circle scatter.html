@@ -7,7 +7,7 @@
     <style>
         body { margin: 0; overflow: visible; background-color: #f0f0f0; font-size: 16px; min-height: 100vh }
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
-        #controls { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.7); padding: 10px; z-index: 10; }
+        #controls { position: absolute; top: 60px; left: 10px; background: rgba(255,255,255,0.7); padding: 10px; z-index: 10; }
         #layout-container {
             position: relative;
             top: 0;
@@ -20,6 +20,7 @@
             align-items: center;
             z-index: 5;
             pointer-events: none;
+            padding-top: 60px;
         }
         #window-circle {
             position: fixed;
@@ -51,9 +52,45 @@
             border: none;
             border-radius: 10px;
         }
+        /* Add these new styles for the navigation */
+        #top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: rgba(255,255,255,0.7);
+            z-index: 15;
+        }
+        #topImage {
+            height: 2rem;
+            width: auto;
+        }
+        .nav-arrows {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav-arrow {
+            font-size: 1.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
+    <nav id="top-nav">
+        <a href="https://linktr.ee/late_arrivals" target="_blank">
+            <img id="topImage" src="images/logo-horizontal-black-clear.png" alt="Late Arrivals">
+        </a>
+        <div class="nav-arrows">
+            <span class="nav-arrow" id="prevApp">&#8592;</span>
+            <span class="nav-arrow" id="nextApp">&#8594;</span>
+        </div>
+    </nav>
+
     <canvas id="canvas"></canvas>
     <div id="controls">
         <label>Blend Mode: 
@@ -80,6 +117,53 @@
         
     </div>
     <script>
+
+       // App cycling functionality
+       const apps = [
+            { name: 'index', path: 'index.html' },
+            { name: 'circle scatter', path: 'circle-scatter.html' },
+            // Add more apps here as needed
+        ];
+
+        let currentAppIndex = 0;
+
+        function updateApp(direction) {
+            currentAppIndex = (currentAppIndex + direction + apps.length) % apps.length;
+            const nextApp = apps[currentAppIndex];
+            
+            // Save any necessary state here
+            const state = {
+                // Add any state you want to persist between app changes
+                blendMode: document.getElementById('blendMode').value,
+                opacity: document.getElementById('opacity').value
+            };
+            localStorage.setItem('appState', JSON.stringify(state));
+            
+            // Navigate to the next app
+            window.location.href = nextApp.path;
+        }
+
+        document.getElementById('prevApp').addEventListener('click', () => updateApp(-1));
+        document.getElementById('nextApp').addEventListener('click', () => updateApp(1));
+
+        // Determine current app and set currentAppIndex
+        const currentPath = window.location.pathname.split('/').pop();
+        currentAppIndex = apps.findIndex(app => app.path === currentPath);
+        if (currentAppIndex === -1) currentAppIndex = 0;  // Default to first app if not found
+
+        // Load saved state if any
+        window.addEventListener('load', () => {
+            const savedState = localStorage.getItem('appState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                // Apply saved state here
+                if (state.blendMode) document.getElementById('blendMode').value = state.blendMode;
+                if (state.opacity) document.getElementById('opacity').value = state.opacity;
+                // Trigger any necessary updates based on these values
+            }
+        });
+
+
         (function() {
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
