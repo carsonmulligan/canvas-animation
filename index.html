@@ -131,42 +131,26 @@
     function updateApp(direction) {
         currentAppIndex = (currentAppIndex + direction + apps.length) % apps.length;
         const nextApp = apps[currentAppIndex];
-        
-        // Save any necessary state here
-        const state = {
-            // Add any state you want to persist between app changes
-            blendMode: document.getElementById('blendMode').value,
-            opacity: document.getElementById('opacity').value
-        };
-        localStorage.setItem('appState', JSON.stringify(state));
-        
-        // Check if the file exists before navigating
-        fetch(nextApp.path, { method: 'HEAD' })
-            .then(response => {
-                if (response.ok) {
-                    // File exists, navigate to it
-                    window.location.href = nextApp.path;
-                } else {
-                    // File doesn't exist, show an error message
-                    console.error(`Error: ${nextApp.path} not found.`);
-                    alert(`Error: Unable to load ${nextApp.name}. Please check if the file exists.`);
-                }
-            })
-            .catch(error => {
-                console.error('Error checking file:', error);
-                alert('An error occurred while trying to change apps. Please try again.');
-            });
+        window.location.href = nextApp.path;
     }
 
-    document.getElementById('prevApp').addEventListener('click', () => updateApp(-1));
-    document.getElementById('nextApp').addEventListener('click', () => updateApp(1));
+    document.getElementById('prevApp').addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent ripple effect
+        updateApp(-1);
+    });
+    document.getElementById('nextApp').addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent ripple effect
+        updateApp(1);
+    });
 
     // Determine current app and set currentAppIndex
-    const currentPath = window.location.pathname.split('/').pop();
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
     currentAppIndex = apps.findIndex(app => app.path.includes(currentPath));
-    if (currentAppIndex === -1) currentAppIndex = 0;  // Default to first app if not found
+    if (currentAppIndex === -1) currentAppIndex = 0;
+
 
     // Load saved state if any
+    /*
     window.addEventListener('load', () => {
         const savedState = localStorage.getItem('appState');
         if (savedState) {
@@ -177,6 +161,7 @@
             // Trigger any necessary updates based on these values
         }
     });
+    */
 
         const canvas = document.getElementById('visualizer');
         const ctx = canvas.getContext('2d');
@@ -398,8 +383,12 @@
             
             // Change this line to listen for clicks on the entire document
             document.addEventListener('click', (e) => {
-                ripples.push(new Ripple(e.clientX, e.clientY));
+                // Don't create ripples if clicking on nav arrows
+                if (!e.target.closest('.nav-arrows')) {
+                    ripples.push(new Ripple(e.clientX, e.clientY));
+                }
             });
+
 
             animate();
 
