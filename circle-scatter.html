@@ -151,11 +151,20 @@
     
         // Circle animation and related functionality
         (function() {
+            console.log('Script initialization started');
+
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             const blendModeSelect = document.getElementById('blendMode');
             const opacityInput = document.getElementById('opacity');
             const windowCircle = document.getElementById('window-circle');
+
+            if (!blendModeSelect || !opacityInput || !windowCircle) {
+            console.error('One or more required elements not found');
+            return;
+             }
+
+            console.log('All required elements found');
     
             const iframe = document.getElementById('YZIESOCTXJ');
             let iframeResizing = false;
@@ -243,13 +252,20 @@
             let returnStartTime;
     
             const gifUrls = [
-                '/images/cloud cutouts.png',
-                '/images/cloud faces.png',
+                './images/cloud cutouts.png',
+                './images/cloud faces.png',
             ];
     
             let currentGifIndex = 0;
-            const cloudGif = new Image();
-            cloudGif.src = gifUrls[currentGifIndex];
+             const cloudGif = new Image();
+             cloudGif.onload = () => {
+            console.log('Cloud GIF loaded successfully');
+            animate();
+             };
+             cloudGif.onerror = (e) => {
+            console.error('Error loading cloud GIF:', e);
+             };
+             cloudGif.src = gifUrls[currentGifIndex];
     
             function shuffleGif() {
                 currentGifIndex = (currentGifIndex + 1) % gifUrls.length;
@@ -339,6 +355,8 @@
             }
     
             function animate() {
+                console.log('Animation frame');
+
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 drawWindowCircle();
     
@@ -372,6 +390,8 @@
     
             // Load saved state if any
             window.addEventListener('load', () => {
+                console.log('Window loaded');
+
                 const savedState = localStorage.getItem('appState');
                 if (savedState) {
                     const state = JSON.parse(savedState);
@@ -384,12 +404,14 @@
             cloudGif.onload = animate;
     
             canvas.addEventListener('click', (event) => {
+                console.log('Canvas clicked');
                 if (!isReturning) {
                     initiateReturn();
                 }
             });
     
             window.addEventListener('resize', () => {
+                console.log('Window resized');
                 resizeCanvas();
                 windowCirclePos = updateWindowCirclePosition();
                 const newRadius = remToPx(circleDiameter) / 2;
