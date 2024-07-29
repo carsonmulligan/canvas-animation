@@ -87,35 +87,9 @@
         .nav-arrow:active {
             transform: scale(0.95);
         }
-        body {
-            overflow-x: hidden; /* Prevent horizontal scrolling */
-        }
-        #app-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .app-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.5s ease-in-out;
-        }
-        .slide-out {
-            transform: translateX(-100%);
-        }
-        .slide-in {
-            transform: translateX(0);
-        }
     </style>
 </head>
 <body>
-    <div id="app-container">
-        <div id="current-app" class="app-content">
-
     <canvas id="canvas"></canvas>
     <nav>
         <a href="https://linktr.ee/late_arrivals" target="_blank">
@@ -148,11 +122,8 @@
                 iFrameResize({heightCalculationMethod:'taggedElement', minHeight: '500px' }, '#YZIESOCTXJ')
             </script>
         </div>
+        
     </div>
-
-        </div>
-    </div>
-
     <script>
         // App cycling functionality
         const apps = [
@@ -164,44 +135,19 @@
         let currentAppIndex = 0;
     
         function updateApp(direction) {
-            const currentApp = document.getElementById('current-app');
             currentAppIndex = (currentAppIndex + direction + apps.length) % apps.length;
             const nextApp = apps[currentAppIndex];
-
-            // Create a new div for the next app
-            const nextAppDiv = document.createElement('div');
-            nextAppDiv.className = 'app-content';
-            nextAppDiv.style.transform = `translateX(${direction > 0 ? '100%' : '-100%'})`;
             
-            // Load the next app's content
-            fetch(nextApp.path)
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const nextAppContent = parser.parseFromString(html, 'text/html');
-                    nextAppDiv.innerHTML = nextAppContent.body.innerHTML;
-                    
-                    // Append the new app and trigger the transition
-                    document.getElementById('app-container').appendChild(nextAppDiv);
-                    setTimeout(() => {
-                        currentApp.style.transform = `translateX(${direction > 0 ? '-100%' : '100%'})`;
-                        nextAppDiv.style.transform = 'translateX(0)';
-                    }, 50);
-
-                    // Clean up after transition
-                    setTimeout(() => {
-                        currentApp.remove();
-                        nextAppDiv.id = 'current-app';
-                        // Reinitialize any necessary scripts for the new app
-                        if (nextApp.path.includes('circle-scatter')) {
-                            initCircleScatter();
-                        } else if (nextApp.path.includes('index')) {
-                            initIndex();
-                        }
-                    }, 500);
-                });
+            // Save any necessary state here
+            const state = {
+                blendMode: document.getElementById('blendMode').value,
+                opacity: document.getElementById('opacity').value
+            };
+            localStorage.setItem('appState', JSON.stringify(state));
+            
+            // Navigate to the next app
+            window.location.href = nextApp.path;
         }
-
     
         document.getElementById('prevApp').addEventListener('click', () => updateApp(-1));
         document.getElementById('nextApp').addEventListener('click', () => updateApp(1));
@@ -210,10 +156,8 @@
         const currentPath = window.location.pathname.split('/').pop() || 'circle-scatter.html';
         currentAppIndex = apps.findIndex(app => app.path.includes(currentPath));
         if (currentAppIndex === -1) currentAppIndex = 0;
-        
-
+    
         // Circle animation and related functionality
-        function initCircleScatter() {
         (function() {
             console.log('Script initialization started');
 
@@ -485,8 +429,7 @@
             });
     
             console.log('Animation script loaded and running');
-        })
-        };
+        })();
     </script>
 </body>
 </html>

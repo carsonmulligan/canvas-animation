@@ -54,6 +54,7 @@
         .nav-arrow:hover {
         transform: scale(1.1);
         }
+
         .nav-arrow:active {
             transform: scale(0.95);
         }
@@ -104,57 +105,27 @@
             #textContainer {
                 margin: 1rem;
             }
-
-        body {
-            overflow-x: hidden; /* Prevent horizontal scrolling */
-        }
-        #app-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .app-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.5s ease-in-out;
-        }
-        .slide-out {
-            transform: translateX(-100%);
-        }
-        .slide-in {
-            transform: translateX(0);
-        }
         }
     </style>
 </head>
 <body>
-    <div id="app-container">
-        <div id="current-app" class="app-content">
-            <div id="wrapper">
-                <canvas id="visualizer"></canvas>
-                <nav>
-                    <a href="https://linktr.ee/late_arrivals" target="_blank">
-                        <img id="topImage" src="images/logo-horizontal-black-clear.png" alt="Late Arrivals">
-                    </a>
-                    <div class="nav-arrows">
-                        <img src="images/arrow-left.svg" alt="Previous" class="nav-arrow" id="prevApp">
-                        <img src="images/arrow-right.svg" alt="Next" class="nav-arrow" id="nextApp">
-                    </div>
-                </nav>
-                <main>
-                    <div id="textContainer">
-                        <div id="textContent"></div>
-                    </div>
-                </main>
+    <div id="wrapper">
+        <canvas id="visualizer"></canvas>
+        <nav>
+            <a href="https://linktr.ee/late_arrivals" target="_blank">
+                <img id="topImage" src="images/logo-horizontal-black-clear.png" alt="Late Arrivals">
+            </a>
+            <div class="nav-arrows">
+                <img src="images/arrow-left.svg" alt="Previous" class="nav-arrow" id="prevApp">
+                <img src="images/arrow-right.svg" alt="Next" class="nav-arrow" id="nextApp">
             </div>
-        </div>
+        </nav>
+        <main>
+            <div id="textContainer">
+                <div id="textContent"></div>
+            </div>
+        </main>
     </div>
-
-
     <script>
 
         // App cycling functionality
@@ -167,43 +138,10 @@
     let currentAppIndex = 0;
 
     function updateApp(direction) {
-            const currentApp = document.getElementById('current-app');
-            currentAppIndex = (currentAppIndex + direction + apps.length) % apps.length;
-            const nextApp = apps[currentAppIndex];
-
-            // Create a new div for the next app
-            const nextAppDiv = document.createElement('div');
-            nextAppDiv.className = 'app-content';
-            nextAppDiv.style.transform = `translateX(${direction > 0 ? '100%' : '-100%'})`;
-            
-            // Load the next app's content
-            fetch(nextApp.path)
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const nextAppContent = parser.parseFromString(html, 'text/html');
-                    nextAppDiv.innerHTML = nextAppContent.body.innerHTML;
-                    
-                    // Append the new app and trigger the transition
-                    document.getElementById('app-container').appendChild(nextAppDiv);
-                    setTimeout(() => {
-                        currentApp.style.transform = `translateX(${direction > 0 ? '-100%' : '100%'})`;
-                        nextAppDiv.style.transform = 'translateX(0)';
-                    }, 50);
-
-                    // Clean up after transition
-                    setTimeout(() => {
-                        currentApp.remove();
-                        nextAppDiv.id = 'current-app';
-                        // Reinitialize any necessary scripts for the new app
-                        if (nextApp.path.includes('circle-scatter')) {
-                            initCircleScatter();
-                        } else if (nextApp.path.includes('index')) {
-                            initIndex();
-                        }
-                    }, 500);
-                });
-        }
+        currentAppIndex = (currentAppIndex + direction + apps.length) % apps.length;
+        const nextApp = apps[currentAppIndex];
+        window.location.href = nextApp.path;
+    }
 
     document.getElementById('prevApp').addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent ripple effect
@@ -233,7 +171,7 @@
         }
     });
     */
-    function initIndex() {
+
         const canvas = document.getElementById('visualizer');
         const ctx = canvas.getContext('2d');
         const textContainer = document.getElementById('textContainer');
@@ -501,8 +439,6 @@
         }
 
         init();
-    }
-    
     </script>
 </body>
 </html>
