@@ -382,6 +382,24 @@
             let revealedCharCount = Math.floor(destroyedCount / 3);
             let revealedText = TEXT.slice(0, revealedCharCount);
             textContent.innerHTML = revealedText + '<span class="cursor"></span>';
+            
+            // Smoothly adjust the text container height
+            requestAnimationFrame(() => {
+                const textContainerHeight = textContent.offsetHeight;
+                textContainer.style.height = `${textContainerHeight}px`;
+            });
+
+            // Scroll to bottom if near the bottom
+            const scrollPosition = window.pageYOffset;
+            const windowHeight = window.innerHeight;
+            const fullHeight = document.documentElement.scrollHeight;
+            
+            if (fullHeight - (scrollPosition + windowHeight) < 100) {
+                window.scrollTo({
+                    top: fullHeight,
+                    behavior: 'smooth'
+                });
+            }
         }
 
         function init() {
@@ -389,19 +407,18 @@
             for (let i = 0; i < SHAPE_COUNT; i++) {
                 shapes.push(new Shape());
             }
-            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                updateText(); // Readjust text container on resize
+            });
             
-            // Change this line to listen for clicks on the entire document
             document.addEventListener('click', (e) => {
-                // Don't create ripples if clicking on nav arrows
                 if (!e.target.closest('.nav-arrows')) {
                     ripples.push(new Ripple(e.clientX, e.clientY));
                 }
             });
 
-
             animate();
-
         }
 
         function animate() {
