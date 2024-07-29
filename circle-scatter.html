@@ -75,9 +75,17 @@
             gap: 1rem;
         }
         .nav-arrow {
-            font-size: 1.5rem;
+            width: 24px;
+            height: 24px;
             cursor: pointer;
             user-select: none;
+            transition: transform 0.2s ease;
+        }
+        .nav-arrow:hover {
+        transform: scale(1.1);
+        }
+        .nav-arrow:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -88,8 +96,8 @@
             <img id="topImage" src="images/logo-horizontal-black-clear.png" alt="Late Arrivals">
         </a>
         <div class="nav-arrows">
-            <span class="nav-arrow" id="prevApp">&#8592;</span>
-            <span class="nav-arrow" id="nextApp">&#8594;</span>
+            <img src="images/arrow-left.svg" alt="Previous" class="nav-arrow" id="prevApp">
+            <img src="images/arrow-right.svg" alt="Next" class="nav-arrow" id="nextApp">
         </div>
     </nav>
     <div id="controls">
